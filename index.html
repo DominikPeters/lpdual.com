@@ -1,0 +1,1040 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <title>Generate LP duals online - Flip inequalities with 1 click</title>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+    <meta name="description" content="Convert linear programming primals into duals with ease. Best tool to remember which way the inequalities go! Also supports Farkas lemma and KKT conditions.">
+    <meta name=”robots” content="index, follow">
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://lpdual.com">
+    <meta property="og:title" content="LP Dual Generator">
+    <meta property="og:description" content="Convert linear programming primals into duals with ease. Best tool to remember which way the inequalities go! Also supports Farkas lemma and KKT conditions.">
+    <meta property="og:image" content="https://lpdual.com/preview.png">
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://lpdual.com">
+    <meta property="twitter:title" content="LP Dual Generator">
+    <meta property="twitter:description" content="Convert linear programming primals into duals with ease. Best tool to remember which way the inequalities go!">
+    <meta property="twitter:image" content="https://lpdual.com/preview.jpg">
+    <!-- KaTeX -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.15.1/dist/katex.min.css" integrity="sha384-R4558gYOUz8mP9YWpZJjofhk+zx0AS11p36HnD2ZKj/6JR5z27gSSULCNHIRReVs" crossorigin="anonymous">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.1/dist/katex.min.js" integrity="sha384-z1fJDqw8ZApjGO3/unPWUPsIymfsJmyrDVWC8Tv/a1HeOtGmkwNd/7xUS0Xcnvsx" crossorigin="anonymous"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.1/dist/contrib/auto-render.min.js" integrity="sha384-+XBljXPPiv+OzfbB3cVmLHf4hdUFHlWNZN5spNQ7rmHTXpd7WvJum6fIACpNNfIR" crossorigin="anonymous"
+        onload="renderMathInElement(document.body);"></script>
+    <!-- Favicon etc -->
+    <meta name="apple-mobile-web-app-title" content="LP Dual">
+    <meta name="application-name" content="LP Dual">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <link rel="canonical" href="https://lpdual.com/">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <style>
+      body {
+        --highlight-color: rgb(156, 220, 254);
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        padding: 0;
+        margin: 0;
+        font-size: 120%;
+        /* background-color: rgb(240,240,240);
+        color: rgb(0, 0, 0); */
+        background-color: rgb(30, 30, 30);
+        color: rgb(211, 211, 211);
+        --box-background-color: rgb(50, 50, 50);
+      }
+      h1 {
+        display: inline-block;
+        font-size: 160%;
+        background-color: #145374;
+        padding: 15px;
+        color: rgba(255, 255, 255, 0.96);
+        border-radius: 20px;
+        margin: 30px 5px 0 0;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+      }
+      main {
+        max-width: 57rem;
+        margin: 0 auto;
+      }
+      #how-to-highlight {
+        color: var(--highlight-color);
+        cursor: help;
+        position: relative;
+      }
+      #how-to-highlight:hover::after {
+        content: url("how-to.gif");
+        position: absolute;
+        top: 2rem;
+        left: 1rem;
+        z-index: 1;
+        border: 1px solid #aaa;
+        box-shadow: 0 0 5px var(--highlight-color);
+      }
+      .explainer {
+        border: 1px solid rgba(0, 0, 0, 0.2);
+        background-color: var(--box-background-color);
+        padding: 1rem;
+        line-height: 1.4;
+        border-radius: 6px;
+      }
+      section {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: flex-start;
+        width: 100%;
+        gap: 1rem;
+      }
+      #kkt-containers {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+      }
+      h2 {
+        font-size: 120%;
+        display: block;
+        margin: 1rem 0 1.8rem 0;
+        padding-bottom: 0.4rem;
+        border-bottom: 1px solid var(--box-background-color);
+      }
+      .program-container .program-name {
+        position: absolute;
+        top: -2rem;
+        left: 0;
+      }
+      .program-container .program-name span {
+        font-size: 100%;
+        font-weight: bold;
+      }
+      .program-container #farkas-allow-strict {
+        position: absolute;
+        left: 0;
+        bottom: -1.7rem;
+        user-select: none;
+        -webkit-user-select: none;
+        font-size: 88%;
+        color: rgb(170, 170, 170);
+      }
+      .program-container {
+        position: relative;
+        background-color: var(--box-background-color);
+        border-radius: 6px;
+        border: rgba(0, 0, 0, 0.2) 1px solid;
+        padding: 0.9rem 0;
+        margin: 1rem 0 1rem 0;
+        box-shadow: 0 1px 6px rgba(0, 0, 0, 0.1);
+        flex: 1;
+      }
+      .kkt-container {
+        padding: 0.3rem 0;
+        margin-bottom: 1.5rem;
+      }
+      .kkt-container p {
+        margin: 0.3rem 0;
+        font-size: 90%;
+        text-align: center;
+        user-select: none;
+        -webkit-user-select: none;
+      }
+      .kkt-container .program-name, #kkt-problem-container .program-name {
+        top: -1.75rem;
+      }
+      table {
+        user-select: none;
+        -webkit-user-select: none;
+        margin: 0 auto;
+        cursor: default;
+        border-collapse: collapse;
+      }
+      td {
+        vertical-align: baseline;
+        background-color: var(--box-background-color);
+        text-align: center;
+        font-size: 95%;
+        padding: 2px;
+      }
+      .clickable {
+        cursor: pointer;
+        color: var(--highlight-color);
+      }
+      .rhs {
+        padding-left: 5px;
+        text-align: left;
+        min-width: 16px; /* prevent flicker when moving to \mathbb R */
+      }
+      #row-kkt-dual-feasibility {
+        display: flex;
+        justify-content: center;
+        gap: 1.3rem;
+        margin: 0.1rem 0;
+      }
+      #row-kkt-dual-feasibility > span {
+        padding: 3px;
+      }
+      td.text {
+        text-align: right;
+      }
+      .qualification {
+        font-size: 80%;
+      }
+      @media (hover: hover) {
+        .highlighted {
+          background-color: rgb(75, 75, 80);
+        }
+      }
+      @media (hover: none) {
+        .highlighted {
+          /* background-color: rgb(90,90,90); */
+        }
+      }
+      .st {
+        display: none;
+      }
+      footer {
+        font-style: italic;
+        color: rgb(200, 200, 200);
+        border-top: 1px solid var(--box-background-color);
+        font-size: 90%;
+        margin-top: 15px;
+        margin-bottom: 35px;
+      }
+      a, a:visited {
+        color: rgb(227,185,120);
+      }
+      #learn-more-list {
+        margin-top: 1rem;
+        margin-bottom: 2rem;
+      }
+      #learn-more-list li {
+        margin-bottom: 0.7rem;
+      }
+      /* iPad */
+      @media (max-width: 950px) {
+        main {
+          margin: 0 20px;
+        }
+      }
+      @media (max-width: 900px) {
+        main {
+          margin: 0 18px;
+        }
+        .program-container {
+          font-size: 98%;
+          padding: 0.7rem 0;
+        }
+        .kkt-container {
+          padding: 0.3rem 0;
+        }
+      }
+      @media (max-width: 820px) {
+        section {
+          gap: 0.5rem;
+        }
+        .program-container {
+          font-size: 91%;
+          min-width: 21rem;
+        }
+        #farkas-l-container {
+          margin-bottom: 3.5rem;
+        }
+      }
+      @media (max-width: 450px) {
+        .program-container {
+          min-width: 16rem;
+          font-size: 87%;
+          margin: 2rem 0 0.5rem 0;
+          padding: 0.7rem;
+        }
+        .kkt-container {
+          padding: 0.3rem;
+        }
+        .explainer {
+          font-size: 90%;
+          padding: 10px;
+        }
+        main {
+          margin: 0 15px;
+        }
+        h1 {
+          font-size: 130%;
+          height: auto;
+          margin-top: 20px;
+          padding: 10px;
+          border-radius: 15px;
+        }
+        #intro {
+          margin: 12px 0;
+          font-size: 90%;
+        }
+        h2 {
+          margin-bottom: 1rem;
+        }
+        .subject-to span {
+          display: none;
+        }
+        .st {
+          display: inline !important;
+        }
+        #p-sense, #d-sense {
+          min-width: 4.8em;
+        }
+      }
+      @media (max-width: 350px) {
+        .program-container {
+          font-size: 80%;
+          padding: 0.4rem;
+        }
+      }
+    </style>
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-49990610-4">
+    </script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'UA-49990610-4');
+    </script>
+    <!-- Clarity tracking code for https://lpdual.com/ -->
+    <script>
+      (function(c,l,a,r,i,t,y){
+          c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+          t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i+"?ref=bwt";
+          y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+      })(window, document, "clarity", "script", "9j5kqiqnaf");
+    </script>
+  </head>
+  <body onload="draw_state()">
+    <main>
+    <header>
+      <h1>LP Dual Generator</h1>
+    </header>
+    <p id="intro">
+      This page is a collection of interactive cheat sheets for deriving <a href="https://en.wikipedia.org/wiki/Dual_linear_program">duals of linear programs</a> (converting primals into duals), for deriving versions of <a href="https://en.wikipedia.org/wiki/Farkas%27_lemma">Farkas' Lemma</a> (theorems of the alternative), and for obtaining <a href="https://en.wikipedia.org/wiki/Karush%E2%80%93Kuhn%E2%80%93Tucker_conditions">KKT conditions</a>. Useful if you can never remember which way the inequalities go.
+    </p>
+    <p class="explainer">
+      💡 
+      Click <span id="how-to-highlight">highlighted</span> elements to customize the problems.
+    </p>
+    <h2>Linear Programming Duality</h2>
+    <section>
+    <div class="program-container">
+    <span class="program-name"><span>Primal</span></span>
+    <table>
+      <tr>
+        <td class="text hov clickable" id="p-sense">maximize&nbsp;&nbsp;</td>
+        <td class="hov p-obj" id="p-c1">\(c_1\)</td>
+        <td class="hov p-obj" id="p-obj-x1">\(x_1\)</td>
+        <td class="p-obj">\(+\)</td>
+        <td class="hov p-obj" id="p-c2">\(c_2\)</td>
+        <td class="hov p-obj" id="p-obj-x2">\(x_2\)</td>
+        <td class="p-obj">\(+\)</td>
+        <td class="hov p-obj" id="p-c3">\(c_3\)</td>
+        <td class="hov p-obj" id="p-obj-x3">\(x_3\)</td>
+      </tr>
+      <tr>
+        <td class="text hov subject-to"><span>subject to</span><span class="st">s.t.</span>&nbsp;&nbsp;</td>
+        <td class="hov p-con1" id="p-a11">\(a_{11}\)</td>
+        <td class="hov p-con1" id="p-con1-x1">\(x_1\)</td>
+        <td class="p-con1">\(+\)</td>
+        <td class="hov p-con1" id="p-a12">\(a_{12}\)</td>
+        <td class="hov p-con1" id="p-con1-x2">\(x_2\)</td>
+        <td class="p-con1">\(+\)</td>
+        <td class="hov p-con1" id="p-a13">\(a_{13}\)</td>
+        <td class="hov p-con1" id="p-con1-x3">\(x_3\)</td>
+        <td class="hov clickable p-con1" id="p-con1-sense">\(\ge\)</td>
+        <td class="hov p-con1 rhs" id="p-b1">\(b_1\)</td>
+      </tr>
+      <tr>
+        <td></td>
+        <td class="hov p-con2" id="p-a21">\(a_{21}\)</td>
+        <td class="hov p-con2" id="p-con2-x1">\(x_1\)</td>
+        <td class="p-con2">\(+\)</td>
+        <td class="hov p-con2" id="p-a22">\(a_{22}\)</td>
+        <td class="hov p-con2" id="p-con2-x2">\(x_2\)</td>
+        <td class="p-con2">\(+\)</td>
+        <td class="hov p-con2" id="p-a23">\(a_{23}\)</td>
+        <td class="hov p-con2" id="p-con2-x3">\(x_3\)</td>
+        <td class="hov clickable p-con2" id="p-con2-sense">\(\ge\)</td>
+        <td class="hov p-con2 rhs" id="p-b2">\(b_2\)</td>
+      </tr>
+      <tr>
+        <td></td>
+        <td class="hov p-con3" id="p-a31">\(a_{31}\)</td>
+        <td class="hov p-con3" id="p-con3-x1">\(x_1\)</td>
+        <td class="p-con3">\(+\)</td>
+        <td class="hov p-con3" id="p-a32">\(a_{32}\)</td>
+        <td class="hov p-con3" id="p-con3-x2">\(x_2\)</td>
+        <td class="p-con3">\(+\)</td>
+        <td class="hov p-con3" id="p-a33">\(a_{33}\)</td>
+        <td class="hov p-con3" id="p-con3-x3">\(x_3\)</td>
+        <td class="hov clickable p-con3" id="p-con3-sense">\(\ge\)</td>
+        <td class="hov p-con3 rhs" id="p-b3">\(b_3\)</td>
+      </tr>
+      <tr>
+        <td colspan="8"></td>
+        <td class="hov clickable" id="p-domain-x1">\(x_1\)</td>
+        <td class="hov clickable" id="p-domain-x1-sense">\(\ge\)</td>
+        <td class="hov clickable rhs" id="p-domain-x1-rhs">\(0\)</td>
+      </tr>
+      <tr>
+        <td colspan="8"></td>
+        <td class="hov clickable" id="p-domain-x2">\(x_2\)</td>
+        <td class="hov clickable" id="p-domain-x2-sense">\(\ge\)</td>
+        <td class="hov clickable rhs" id="p-domain-x2-rhs">\(0\)</td>
+      </tr>
+      <tr>
+        <td colspan="8"></td>
+        <td class="hov clickable" id="p-domain-x3">\(x_3\)</td>
+        <td class="hov clickable" id="p-domain-x3-sense">\(\in\)</td>
+        <td class="hov clickable rhs" id="p-domain-x3-rhs">\(\mathbb{R}\)</td>
+      </tr>
+    </table>
+    </div>
+    <div class="program-container">
+    <span class="program-name"><span>Dual</span></span>
+    <table>
+      <tr>
+        <td class="text hov clickable" id="d-sense">minimize&nbsp;&nbsp;</td>
+        <td class="hov" id="d-b1">\(b_1\)</td>
+        <td class="hov" id="d-obj-p1">\(p_1\)</td>
+        <td>\(+\)</td>
+        <td class="hov" id="d-b2">\(b_2\)</td>
+        <td class="hov" id="d-obj-p2">\(p_2\)</td>
+        <td>\(+\)</td>
+        <td class="hov" id="d-b3">\(b_3\)</td>
+        <td class="hov" id="d-obj-p3">\(p_3\)</td>
+      </tr>
+      <tr>
+        <td class="text hov subject-to"><span>subject to</span><span class="st">s.t.</span>&nbsp;&nbsp;</td>
+        <td class="hov d-con1" id="d-a11">\(a_{11}\)</td>
+        <td class="hov d-con1" id="d-con1-p1">\(p_1\)</td>
+        <td class="d-con1">\(+\)</td>
+        <td class="hov d-con1" id="d-a21">\(a_{21}\)</td>
+        <td class="hov d-con1" id="d-con1-p2">\(p_2\)</td>
+        <td class="d-con1">\(+\)</td>
+        <td class="hov d-con1" id="d-a31">\(a_{31}\)</td>
+        <td class="hov d-con1" id="d-con1-p3">\(p_3\)</td>
+        <td class="hov clickable d-con1" id="d-con1-sense">\(\ge\)</td>
+        <td class="hov d-con1 rhs" id="d-c1">\(c_1\)</td>
+      </tr>
+      <tr>
+        <td></td>
+        <td class="hov d-con2" id="d-a12">\(a_{12}\)</td>
+        <td class="hov d-con2" id="d-con2-p1">\(p_1\)</td>
+        <td class="d-con2">\(+\)</td>
+        <td class="hov d-con2" id="d-a22">\(a_{22}\)</td>
+        <td class="hov d-con2" id="d-con2-p2">\(p_2\)</td>
+        <td class="d-con2">\(+\)</td>
+        <td class="hov d-con2" id="d-a32">\(a_{32}\)</td>
+        <td class="hov d-con2" id="d-con2-p3">\(p_3\)</td>
+        <td class="hov clickable d-con2" id="d-con2-sense">\(\ge\)</td>
+        <td class="hov d-con2 rhs" id="d-c2">\(c_2\)</td>
+      </tr>
+      <tr>
+        <td></td>
+        <td class="hov d-con3" id="d-a13">\(a_{13}\)</td>
+        <td class="hov d-con3" id="d-con3-p1">\(p_1\)</td>
+        <td class="d-con3">\(+\)</td>
+        <td class="hov d-con3" id="d-a23">\(a_{23}\)</td>
+        <td class="hov d-con3" id="d-con3-p2">\(p_2\)</td>
+        <td class="d-con3">\(+\)</td>
+        <td class="hov d-con3" id="d-a33">\(a_{33}\)</td>
+        <td class="hov d-con3" id="d-con3-p3">\(p_3\)</td>
+        <td class="hov clickable d-con3" id="d-con3-sense">\(\ge\)</td>
+        <td class="hov d-con3 rhs" id="d-c3">\(c_3\)</td>
+      </tr>
+      <tr>
+        <td colspan="8"></td>
+        <td class="hov clickable" id="d-domain-p1">\(p_1\)</td>
+        <td class="hov clickable" id="d-domain-p1-sense">\(\ge\)</td>
+        <td class="hov clickable rhs" id="d-domain-p1-rhs">\(0\)</td>
+      </tr>
+      <tr>
+        <td colspan="8"></td>
+        <td class="hov clickable" id="d-domain-p2">\(p_2\)</td>
+        <td class="hov clickable" id="d-domain-p2-sense">\(\ge\)</td>
+        <td class="hov clickable rhs" id="d-domain-p2-rhs">\(0\)</td>
+      </tr>
+      <tr>
+        <td colspan="8"></td>
+        <td class="hov clickable" id="d-domain-p3">\(p_3\)</td>
+        <td class="hov clickable" id="d-domain-p3-sense">\(\in\)</td>
+        <td class="hov clickable rhs" id="d-domain-p3-rhs">\(\mathbb{R}\)</td>
+      </tr>
+    </table>
+    </div>
+    </section>
+    <h2>Farkas' Lemma</h2>
+    <section>
+    <div class="program-container" id="farkas-l-container">
+    <span class="program-name"><span>If this program has no solutions...</span></span>
+    <table>
+      <tr>
+        <td class="hov l-con1" id="l-a11">\(a_{11}\)</td>
+        <td class="hov l-con1" id="l-con1-x1">\(x_1\)</td>
+        <td class="l-con1">\(+\)</td>
+        <td class="hov l-con1" id="l-a12">\(a_{12}\)</td>
+        <td class="hov l-con1" id="l-con1-x2">\(x_2\)</td>
+        <td class="l-con1">\(+\)</td>
+        <td class="hov l-con1" id="l-a13">\(a_{13}\)</td>
+        <td class="hov l-con1" id="l-con1-x3">\(x_3\)</td>
+        <td class="hov clickable l-con1" id="l-con1-sense">\(\le\)</td>
+        <td class="hov l-con1 rhs" id="l-b1">\(b_1\)</td>
+      </tr>
+      <tr>
+        <td class="hov l-con2" id="l-a21">\(a_{21}\)</td>
+        <td class="hov l-con2" id="l-con2-x1">\(x_1\)</td>
+        <td class="l-con2">\(+\)</td>
+        <td class="hov l-con2" id="l-a22">\(a_{22}\)</td>
+        <td class="hov l-con2" id="l-con2-x2">\(x_2\)</td>
+        <td class="l-con2">\(+\)</td>
+        <td class="hov l-con2" id="l-a23">\(a_{23}\)</td>
+        <td class="hov l-con2" id="l-con2-x3">\(x_3\)</td>
+        <td class="hov clickable l-con2" id="l-con2-sense">\(\le\)</td>
+        <td class="hov l-con2 rhs" id="l-b2">\(b_2\)</td>
+      </tr>
+      <tr>
+        <td class="hov l-con3" id="l-a31">\(a_{31}\)</td>
+        <td class="hov l-con3" id="l-con3-x1">\(x_1\)</td>
+        <td class="l-con3">\(+\)</td>
+        <td class="hov l-con3" id="l-a32">\(a_{32}\)</td>
+        <td class="hov l-con3" id="l-con3-x2">\(x_2\)</td>
+        <td class="l-con3">\(+\)</td>
+        <td class="hov l-con3" id="l-a33">\(a_{33}\)</td>
+        <td class="hov l-con3" id="l-con3-x3">\(x_3\)</td>
+        <td class="hov clickable l-con3" id="l-con3-sense">\(\le\)</td>
+        <td class="hov l-con3 rhs" id="l-b3">\(b_3\)</td>
+      </tr>
+      <tr>
+        <td colspan="7"></td>
+        <td class="hov clickable" id="l-domain-x1">\(x_1\)</td>
+        <td class="hov clickable" id="l-domain-x1-sense">\(\ge\)</td>
+        <td class="hov clickable rhs" id="l-domain-x1-rhs">\(0\)</td>
+      </tr>
+      <tr>
+        <td colspan="7"></td>
+        <td class="hov clickable" id="l-domain-x2">\(x_2\)</td>
+        <td class="hov clickable" id="l-domain-x2-sense">\(\ge\)</td>
+        <td class="hov clickable rhs" id="l-domain-x2-rhs">\(0\)</td>
+      </tr>
+      <tr>
+        <td colspan="7"></td>
+        <td class="hov clickable" id="l-domain-x3">\(x_3\)</td>
+        <td class="hov clickable" id="l-domain-x3-sense">\(\ge\)</td>
+        <td class="hov clickable rhs" id="l-domain-x3-rhs">\(0\)</td>
+      </tr>
+    </table>
+    <label id="farkas-allow-strict">
+      <input type="checkbox" name="farkas-strict" id="farkas-strict" onchange="farkasStrictToggle()" />
+      Allow strict inequalities (experimental)
+    </label>
+    </div>
+    <div class="program-container">
+    <span class="program-name"><span>...then this program has a solution</span></span>
+    <table>
+      <tr>
+        <td class="hov r-obj" id="r-b1">\(b_1\)</td>
+        <td class="hov r-obj" id="r-obj-p1">\(p_1\)</td>
+        <td class="r-obj">\(+\)</td>
+        <td class="hov r-obj" id="r-b2">\(b_2\)</td>
+        <td class="hov r-obj" id="r-obj-p2">\(p_2\)</td>
+        <td class="r-obj">\(+\)</td>
+        <td class="hov r-obj" id="r-b3">\(b_3\)</td>
+        <td class="hov r-obj" id="r-obj-p3">\(p_3\)</td>
+        <td class="hov r-obj" id="r-obj-sense">\(<\)</td>
+        <td class="hov r-obj rhs" id="r-obj-rhs" style="min-width: 20px;">\(0\)</td>
+      </tr>
+      <tr>
+        <td class="hov r-con1" id="r-a11">\(a_{11}\)</td>
+        <td class="hov r-con1" id="r-con1-p1">\(p_1\)</td>
+        <td class="r-con1">\(+\)</td>
+        <td class="hov r-con1" id="r-a21">\(a_{21}\)</td>
+        <td class="hov r-con1" id="r-con1-p2">\(p_2\)</td>
+        <td class="r-con1">\(+\)</td>
+        <td class="hov r-con1" id="r-a31">\(a_{31}\)</td>
+        <td class="hov r-con1" id="r-con1-p3">\(p_3\)</td>
+        <td class="hov r-con1" id="r-con1-sense">\(\ge\)</td>
+        <td class="hov r-con1 rhs" id="r-con1-rhs">\(0\)</td>
+      </tr>
+      <tr>
+        <td class="hov r-con2" id="r-a12">\(a_{12}\)</td>
+        <td class="hov r-con2" id="r-con2-p1">\(p_1\)</td>
+        <td class="r-con2">\(+\)</td>
+        <td class="hov r-con2" id="r-a22">\(a_{22}\)</td>
+        <td class="hov r-con2" id="r-con2-p2">\(p_2\)</td>
+        <td class="r-con2">\(+\)</td>
+        <td class="hov r-con2" id="r-a32">\(a_{32}\)</td>
+        <td class="hov r-con2" id="r-con2-p3">\(p_3\)</td>
+        <td class="hov r-con2" id="r-con2-sense">\(\ge\)</td>
+        <td class="hov r-con2 rhs" id="r-con2-rhs">\(0\)</td>
+      </tr>
+      <tr>
+        <td class="hov r-con3" id="r-a13">\(a_{13}\)</td>
+        <td class="hov r-con3" id="r-con3-p1">\(p_1\)</td>
+        <td class="r-con3">\(+\)</td>
+        <td class="hov r-con3" id="r-a23">\(a_{23}\)</td>
+        <td class="hov r-con3" id="r-con3-p2">\(p_2\)</td>
+        <td class="r-con3">\(+\)</td>
+        <td class="hov r-con3" id="r-a33">\(a_{33}\)</td>
+        <td class="hov r-con3" id="r-con3-p3">\(p_3\)</td>
+        <td class="hov r-con3" id="r-con3-sense">\(\ge\)</td>
+        <td class="hov r-con3 rhs" id="r-con3-rhs">\(0\)</td>
+      </tr>
+      <tr>
+        <td colspan="7"></td>
+        <td class="hov" id="r-domain-p1">\(p_1\)</td>
+        <td class="hov" id="r-domain-p1-sense">\(\ge\)</td>
+        <td class="hov rhs" id="r-domain-p1-rhs">\(0\)</td>
+      </tr>
+      <tr>
+        <td colspan="7"></td>
+        <td class="hov" id="r-domain-p2">\(p_2\)</td>
+        <td class="hov" id="r-domain-p2-sense">\(\ge\)</td>
+        <td class="hov rhs" id="r-domain-p2-rhs">\(0\)</td>
+      </tr>
+      <tr>
+        <td colspan="7"></td>
+        <td class="hov" id="r-domain-p3">\(p_3\)</td>
+        <td class="hov" id="r-domain-p3-sense">\(\in\)</td>
+        <td class="hov rhs" id="r-domain-p3-rhs">\(\mathbb{R}\)</td>
+      </tr>
+      <tr>
+        <td id="row-equality-only-if" style="display: none" colspan="10">*with equality only if \(p_1 + p_2 > 0\)</td>
+      </tr>
+    </table>
+    </div>
+    </section>
+
+
+    <h2>Karush–Kuhn–Tucker (KKT) conditions</h2>
+    <section>
+    <div class="program-container" id="kkt-problem-container">
+    <span class="program-name"><span>Optimization Problem</span></span>
+    <table>
+      <tr>
+        <td class="text hov clickable" id="kkt-sense">maximize&nbsp;&nbsp;</td>
+        <td class="hov p-obj" id="kkt-obj">\(f(x_1, x_2, x_3)\)</td>
+      </tr>
+      <tr>
+        <td class="text hov">subject to&nbsp;&nbsp;</td>
+        <td class="hov kkt-con1" id="kkt-con1-lhs">\(g_1(x_1, x_2, x_3)\)</td>
+        <td class="hov clickable kkt-con1" id="kkt-con1-sense">\(\ge\)</td>
+        <td class="hov kkt-con1 rhs" id="kkt-con1-rhs">\(0\)</td>
+      </tr>
+      <tr>
+        <td></td>
+        <td class="hov kkt-con2" id="kkt-con2-lhs">\(g_2(x_1, x_2, x_3)\)</td>
+        <td class="hov clickable kkt-con2" id="kkt-con2-sense">\(\ge\)</td>
+        <td class="hov kkt-con2 rhs" id="kkt-con2-rhs">\(0\)</td>
+      </tr>
+      <tr>
+        <td></td>
+        <td class="hov kkt-con3" id="kkt-con3-lhs">\(g_3(x_1, x_2, x_3)\)</td>
+        <td class="hov clickable kkt-con3" id="kkt-con3-sense">\(\ge\)</td>
+        <td class="hov kkt-con3 rhs" id="kkt-con3-rhs">\(0\)</td>
+      </tr>
+    </table>
+    </div>
+    <div id="kkt-containers">
+      <div class="program-container kkt-container">
+        <span class="program-name"><span>Lagrangian</span></span>
+        <p>
+          \( \mathcal{L} = f(\vec{x}) \) 
+          <span class="hov" id="kkt-lagr-connect1">\(-\)</span>
+          \( \lambda_1 g_1(\vec{x}) \)
+          <span class="hov" id="kkt-lagr-connect2">\(-\)</span>
+          \( \lambda_2 g_2(\vec{x}) \)
+          <span class="hov" id="kkt-lagr-connect3">\(-\)</span>
+          \( \lambda_3 g_3(\vec{x}) \)
+        </p>
+      </div>
+      <div class="program-container kkt-container">
+        <span class="program-name"><span>First-Order Conditions</span></span>
+        <p>\( \frac{\partial f}{\partial x_1} = \frac{\partial f}{\partial x_2} = \frac{\partial f}{\partial x_3} = 0 \)</p>
+      </div>
+      <div class="program-container kkt-container">
+        <span class="program-name"><span>Dual Feasibility</span></span>
+        <p id="row-kkt-dual-feasibility">
+          <span class="hov" id="kkt-lambda1-sense">\( \lambda_1 \geqslant 0 \)</span>
+          <span class="hov" id="kkt-lambda2-sense">\( \lambda_2 \geqslant 0 \)</span>
+          <span class="hov" id="kkt-lambda3-sense">\( \lambda_3 \geqslant 0 \)</span>
+        </p>
+      </div>
+      <div class="program-container kkt-container">
+        <span class="program-name"><span>Complementary Slackness</span></span>
+        <p>
+          <span id="kkt-compl-1"><span class="hov" id="kkt-compl-1-term">\( \lambda_1 g_1(\vec{x}) \)</span> \(=\)</span> 
+          <span id="kkt-compl-2"><span class="hov" id="kkt-compl-2-term">\( \lambda_2 g_2(\vec{x}) \)</span> \(=\)</span> 
+          <span id="kkt-compl-3"><span class="hov" id="kkt-compl-3-term">\( \lambda_3 g_3(\vec{x}) \)</span> \(=\)</span> 
+          <span id="kkt-compl-rhs">\( 0 \)</span>
+          <span id="kkt-compl-NA" style="display: none;">N/A</span>
+        </p>
+      </div>
+    </div>
+    </section>
+    <h2 style="margin-bottom: 0;">Recommended Reading</h2>
+    <ul id="learn-more-list">
+      <li>Wikipedia: <a href="https://en.wikipedia.org/wiki/Dual_linear_program">Dual linear program</a>, <a href="https://en.wikipedia.org/wiki/Farkas%27_lemma">Farkas' Lemma</a>, <a href="https://en.wikipedia.org/wiki/Karush%E2%80%93Kuhn%E2%80%93Tucker_conditions">KKT conditions</a>.</li>
+      <li>KC Border's <a href="Alternative.pdf">notes on theorems of the alternative</a> (PDF, 2013).</li>
+      <li>Matousek and G&auml;rtner's <em><a href="https://smile.amazon.com/Understanding-Using-Linear-Programming-Universitext/dp/3540306978">Understanding and Using Linear Programming</a></em> (Book, 2006).</li>
+    </ul>
+    <footer>
+      <p>Built by <a href="https://dominik-peters.de">Dominik Peters</a> with <a href="https://katex.org/">KaTeX</a>. Updated&nbsp;November&nbsp;2021.</p>
+    </footer>
+    </main>
+
+
+
+    <script>
+      const POS = 100;
+      const FREE = 101;
+      const NEG = 102;
+      const VERYPOS = 103;
+      var state = {
+        primalSense : "max",
+        x1 : POS,
+        x2 : POS,
+        x3 : POS,
+        p1 : POS,
+        p2 : POS,
+        p3 : POS,
+        fx1 : POS,
+        fx2 : POS,
+        fx3 : POS,
+        fp1 : POS,
+        fp2 : POS,
+        fp3 : POS,
+        kktSense : "max",
+        kkt1 : NEG,
+        kkt2 : NEG,
+        kkt3 : NEG
+      }
+      function farkasStrictToggle() {
+        var checkbox = document.getElementById("farkas-strict");
+        if (checkbox.checked) {
+          state["fp1"] = VERYPOS;
+          draw_state();
+        } else {
+          if (state["fp1"] == VERYPOS) {
+            state["fp1"] = POS;
+          }
+          if (state["fp2"] == VERYPOS) {
+            state["fp2"] = POS;
+          }
+          if (state["fp3"] == VERYPOS) {
+            state["fp3"] = POS;
+          }
+          draw_state();
+        }
+      }
+      var toggle = function(field) {
+        var farkasCheckbox = document.getElementById("farkas-strict");
+        if (field.slice(0,2) == "fp") {
+          if (state[field] == POS) { state[field] = FREE; }
+          else if (state[field] == FREE) { state[field] = NEG; }
+          else if (state[field] == NEG && farkasCheckbox.checked) { state[field] = VERYPOS; }
+          else if (state[field] == NEG && !farkasCheckbox.checked) { state[field] = POS; }
+          else if (state[field] == VERYPOS) { state[field] = POS; }
+        } else {
+          if (state[field] == POS) { state[field] = FREE; }
+          else if (state[field] == FREE) { state[field] = NEG; }
+          else if (state[field] == NEG) { state[field] = POS; }
+        }
+      }
+      // toggle but keep NEQ identical
+      var toggleNEQ = function(field) {
+        if (state[field] == POS) { state[field] = NEG; }
+        else if (state[field] == NEG) { state[field] = POS; }
+      }
+      var draw_state = function() {
+        var variables = ["x1","x2","x3","p1","p2","p3"];
+        for (v of variables) {
+          vType = v.includes("x") ? "p" : "d";
+          domainSenseElem = document.getElementById(vType + "-domain-" + v + "-sense");
+          domainRHSElem = document.getElementById(vType + "-domain-" + v + "-rhs");
+          domainRHSElem.innerHTML = "\\(0\\)";
+          if (state[v] == POS) { domainSenseElem.innerHTML = "\\(\\geqslant\\)"; }
+          if (state[v] == FREE) { domainSenseElem.innerHTML = "\\(\\in\\)"; domainRHSElem.innerHTML = "\\(\\mathbb{R}\\)";}
+          if (state[v] == NEG) { domainSenseElem.innerHTML = "\\(\\leqslant\\)"; }
+          renderMathInElement(domainSenseElem);
+          renderMathInElement(domainRHSElem);
+          conName = vType == "p" ? "d-con" + v.slice(1) : "p-con" + v.slice(1);
+          conSenseElem = document.getElementById(conName + "-sense");
+          // dual logic
+          if ((state.primalSense == "max" && vType == "p") ||
+              (state.primalSense == "min" && vType == "d")) {
+            if (state[v] == POS) { conSenseElem.innerHTML = "\\(\\geqslant\\)"; }
+            if (state[v] == FREE) { conSenseElem.innerHTML = "\\(=\\)"; }
+            if (state[v] == NEG) { conSenseElem.innerHTML = "\\(\\leqslant\\)"; }
+          } else {
+            if (state[v] == POS) { conSenseElem.innerHTML = "\\(\\leqslant\\)"; }
+            if (state[v] == FREE) { conSenseElem.innerHTML = "\\(=\\)"; }
+            if (state[v] == NEG) { conSenseElem.innerHTML = "\\(\\geqslant\\)"; }
+          }
+          renderMathInElement(conSenseElem);
+        }
+        // write sense
+        pSenseElem = document.getElementById("p-sense");
+        dSenseElem = document.getElementById("d-sense");
+        if (state.primalSense == "min") {
+          pSenseElem.innerHTML = "minimize&nbsp;&nbsp;";
+          dSenseElem.innerHTML = "maximize&nbsp;&nbsp;";
+        } else {
+          dSenseElem.innerHTML = "minimize&nbsp;&nbsp;";
+          pSenseElem.innerHTML = "maximize&nbsp;&nbsp;";
+        }
+        // Farkas
+        var variables = ["fx1","fx2","fx3","fp1","fp2","fp3"];
+        var veryPositives = new Array();
+        for (v of variables) {
+          vType = v.includes("x") ? "l" : "r";
+          domainSenseElem = document.getElementById(vType + "-domain-" + v.slice(1) + "-sense");
+          domainRHSElem = document.getElementById(vType + "-domain-" + v.slice(1) + "-rhs");
+          domainRHSElem.innerHTML = "\\(0\\)";
+          if (state[v] == POS || state[v] == VERYPOS) { domainSenseElem.innerHTML = "\\(\\geqslant\\)"; }
+          if (state[v] == FREE) { domainSenseElem.innerHTML = "\\(\\in\\)"; domainRHSElem.innerHTML = "\\(\\mathbb{R}\\)";}
+          if (state[v] == NEG) { domainSenseElem.innerHTML = "\\(\\leqslant\\)"; }
+          renderMathInElement(domainSenseElem);
+          renderMathInElement(domainRHSElem);
+          conName = vType == "l" ? "r-con" + v.slice(2) : "l-con" + v.slice(2);
+          conSenseElem = document.getElementById(conName + "-sense");
+          // dual logic
+          if (vType == "r") {
+            if (state[v] == POS) { conSenseElem.innerHTML = "\\(\\leqslant\\)"; }
+            if (state[v] == VERYPOS) { 
+              conSenseElem.innerHTML = "\\(<\\)"; 
+              veryPositives.push("p_"+v.slice(-1));
+            }
+            if (state[v] == FREE) { conSenseElem.innerHTML = "\\(=\\)"; }
+            if (state[v] == NEG) { conSenseElem.innerHTML = "\\(\\geqslant\\)"; }
+          } else {
+            if (state[v] == POS) { conSenseElem.innerHTML = "\\(\\geqslant\\)"; }
+            if (state[v] == FREE) { conSenseElem.innerHTML = "\\(=\\)"; }
+            if (state[v] == NEG) { conSenseElem.innerHTML = "\\(\\leqslant\\)"; }
+          }
+          renderMathInElement(conSenseElem);
+        }
+        // equality only if
+        eqQualifierAsterisk = document.getElementById("r-obj-rhs");
+        eqQualifierExplanation = document.getElementById("row-equality-only-if");
+        farkasObjSense = document.getElementById("r-obj-sense");
+        if (veryPositives.length > 0) {
+          var content = "&nbsp;<span class='qualification'>* with equality only if \\(" + veryPositives.join("+") + ">0\\)</span>";
+          eqQualifierAsterisk.innerHTML = "\\(0^*\\)"
+          eqQualifierExplanation.innerHTML = content;
+          eqQualifierExplanation.style.display = "table-cell";
+          farkasObjSense.innerHTML = "\\(\\leqslant\\)"
+          renderMathInElement(eqQualifierExplanation);
+        } else {
+          eqQualifierExplanation.innerHTML = "";
+          eqQualifierExplanation.style.display = "none";
+          eqQualifierAsterisk.innerHTML = "\\(0\\)";
+          farkasObjSense.innerHTML = "\\(<\\)"
+        }
+        renderMathInElement(eqQualifierAsterisk);
+        renderMathInElement(farkasObjSense);
+        // KKT
+        // write sense
+        kktSenseElem = document.getElementById("kkt-sense");
+        if (state.kktSense == "min") {
+          kktSenseElem.innerHTML = "minimize&nbsp;&nbsp;";
+        } else {
+          kktSenseElem.innerHTML = "maximize&nbsp;&nbsp;";
+        }
+        var num_ineqs = 0; // keep track of how many inequalities we have for showing "= 0" or not
+        for (con of ["1","2","3"]) {
+          var v = "kkt" + con;
+          conSenseElem = document.getElementById("kkt-con" + con + "-sense");
+          if (state[v] == POS) { conSenseElem.innerHTML = "\\(\\geqslant\\)"; }
+          if (state[v] == FREE) { conSenseElem.innerHTML = "\\(=\\)"; }
+          if (state[v] == NEG) { conSenseElem.innerHTML = "\\(\\leqslant\\)"; }
+          renderMathInElement(conSenseElem);
+          // Lagrangian
+          var combinator = document.getElementById("kkt-lagr-connect" + con);
+          var status = 1;
+          if (state[v] == NEG) { status *= -1; }
+          if (state.kktSense == "min") { status *= -1; }
+          if (state[v] == FREE) { status = 1; }
+          status = status == 1 ? "+" : "-";
+          combinator.innerHTML = "\\(" + status + "\\)";
+          renderMathInElement(combinator);
+          // dual feasibility and complementary slackness
+          var slackTerm = document.getElementById("kkt-compl-" + con);
+          var lambdaSense = document.getElementById("kkt-lambda" + con + "-sense");
+          if (state[v] == POS || state[v] == NEG) {
+            num_ineqs += 1;
+            slackTerm.style.display = "inline-block";
+            lambdaSense.innerHTML = "\\( \\lambda_" + con + " \\geqslant 0 \\)";
+          } else {
+            slackTerm.style.display = "none";
+            lambdaSense.innerHTML = "\\( \\lambda_" + con + " \\in \\mathbb R \\)";
+          }
+          renderMathInElement(lambdaSense);
+        }
+        document.getElementById("kkt-compl-rhs").style.display = num_ineqs > 0 ? "inline-block" : "none";
+        document.getElementById("kkt-compl-NA").style.display = num_ineqs == 0 ? "inline-block" : "none";
+      }
+
+      partition = [
+        ["p-a11", "d-a11"],
+        ["p-a12", "d-a12"],
+        ["p-a13", "d-a13"],
+        ["p-a21", "d-a21"],
+        ["p-a22", "d-a22"],
+        ["p-a23", "d-a23"],
+        ["p-a31", "d-a31"],
+        ["p-a32", "d-a32"],
+        ["p-a33", "d-a33"],
+        ["p-c1", "d-c1"],
+        ["p-c2", "d-c2"],
+        ["p-c3", "d-c3"],
+        ["p-b1", "d-b1"],
+        ["p-b2", "d-b2"],
+        ["p-b3", "d-b3"],
+        ["p-sense", "d-sense"],
+        ["p-obj-x1", "p-con1-x1","p-con2-x1","p-con3-x1",".d-con1"],
+        ["p-obj-x2", "p-con1-x2","p-con2-x2","p-con3-x2",".d-con2"],
+        ["p-obj-x3", "p-con1-x3","p-con2-x3","p-con3-x3",".d-con3"],
+        ["d-obj-p1", "d-con1-p1","d-con2-p1","d-con3-p1",".p-con1"],
+        ["d-obj-p2", "d-con1-p2","d-con2-p2","d-con3-p2",".p-con2"],
+        ["d-obj-p3", "d-con1-p3","d-con2-p3","d-con3-p3",".p-con3"],
+        ["p-domain-x1","p-domain-x1-sense","p-domain-x1-rhs","d-con1-sense"],
+        ["p-domain-x2","p-domain-x2-sense","p-domain-x2-rhs","d-con2-sense"],
+        ["p-domain-x3","p-domain-x3-sense","p-domain-x3-rhs","d-con3-sense"],
+        ["d-domain-p1","d-domain-p1-sense","d-domain-p1-rhs","p-con1-sense"],
+        ["d-domain-p2","d-domain-p2-sense","d-domain-p2-rhs","p-con2-sense"],
+        ["d-domain-p3","d-domain-p3-sense","d-domain-p3-rhs","p-con3-sense"],
+        // Farkas
+        ["l-a11", "r-a11"],
+        ["l-a12", "r-a12"],
+        ["l-a13", "r-a13"],
+        ["l-a21", "r-a21"],
+        ["l-a22", "r-a22"],
+        ["l-a23", "r-a23"],
+        ["l-a31", "r-a31"],
+        ["l-a32", "r-a32"],
+        ["l-a33", "r-a33"],
+        ["l-b1", "r-b1"],
+        ["l-b2", "r-b2"],
+        ["l-b3", "r-b3"],
+        ["l-con1-x1","l-con2-x1","l-con3-x1",".r-con1"],
+        ["l-con1-x2","l-con2-x2","l-con3-x2",".r-con2"],
+        ["l-con1-x3","l-con2-x3","l-con3-x3",".r-con3"],
+        ["r-obj-p1", "r-con1-p1","r-con2-p1","r-con3-p1",".l-con1"],
+        ["r-obj-p2", "r-con1-p2","r-con2-p2","r-con3-p2",".l-con2"],
+        ["r-obj-p3", "r-con1-p3","r-con2-p3","r-con3-p3",".l-con3"],
+        ["l-domain-x1","l-domain-x1-sense","l-domain-x1-rhs","r-con1-sense"],
+        ["l-domain-x2","l-domain-x2-sense","l-domain-x2-rhs","r-con2-sense"],
+        ["l-domain-x3","l-domain-x3-sense","l-domain-x3-rhs","r-con3-sense"],
+        ["r-domain-p1","r-domain-p1-sense","r-domain-p1-rhs","l-con1-sense"],
+        ["r-domain-p2","r-domain-p2-sense","r-domain-p2-rhs","l-con2-sense"],
+        ["r-domain-p3","r-domain-p3-sense","r-domain-p3-rhs","l-con3-sense"],
+        // KKT
+        ["kkt-con1-sense","kkt-lambda1-sense","kkt-lagr-connect1","kkt-compl-1-term"],
+        ["kkt-con2-sense","kkt-lambda2-sense","kkt-lagr-connect2","kkt-compl-2-term"],
+        ["kkt-con3-sense","kkt-lambda3-sense","kkt-lagr-connect3","kkt-compl-3-term"],
+        ["kkt-sense"]
+      ];
+
+      // highlight hovered cells and their duals
+      var hovs = document.getElementsByClassName("hov");
+      function highlight(elem) {
+        elem.classList.add("highlighted");
+      }
+      for (td of hovs) {
+        td.addEventListener("mouseover", function() {
+          if (this.id == "kkt-sense") {
+            highlight(document.getElementById("kkt-lagr-connect1"));
+            highlight(document.getElementById("kkt-lagr-connect2"));
+            highlight(document.getElementById("kkt-lagr-connect3"));
+          }
+          for (block of partition) {
+            if (block.includes(this.id)) {
+              for (elemId of block) {
+                if (elemId.includes(".")) {
+                  for (elem of document.getElementsByClassName(elemId.slice(1))) {
+                    highlight(elem);
+                  }
+                } else {
+                  highlight(document.getElementById(elemId));
+                }
+              }
+            }
+          }
+        });
+        td.addEventListener("mouseout", function() {
+          for (elem of document.getElementsByTagName("td")) {
+            elem.classList.remove("highlighted");
+          }
+          for (elem of document.getElementsByClassName("hov")) {
+            elem.classList.remove("highlighted");
+          }
+        });
+      }
+
+      // add click events
+      var clickables = document.getElementsByClassName("clickable");
+      for (td of clickables) {
+        td.addEventListener("click", function() {
+          var variables = ["x1","x2","x3","p1","p2","p3"];
+          // LP duality
+          if (this.id.includes("p-domain") || this.id.includes("d-domain")) {
+            for (v of variables) {
+              if (this.id.includes(v)) { toggle(v); }
+            }
+          }
+          var cons = ["d-con1","d-con2","d-con3","p-con1","p-con2","p-con3"];
+          for (i of [0,1,2,3,4,5]) {
+            if (this.id == cons[i] + "-sense") {
+              toggle(variables[i]);
+            }
+          }
+          // toggle primal sense, keep toggled side fixed
+          if (this.id == "p-sense") {
+            if (state.primalSense == "max") {
+              state.primalSense = "min";
+            } else {
+              state.primalSense = "max";
+            }
+            toggleNEQ("p1"); toggleNEQ("p2"); toggleNEQ("p3");
+          }
+          if (this.id == "d-sense") {
+            if (state.primalSense == "max") {
+              state.primalSense = "min";
+            } else {
+              state.primalSense = "max";
+            }
+            toggleNEQ("x1"); toggleNEQ("x2"); toggleNEQ("x3");
+          }
+          // Farkas
+          if (this.id.includes("l-domain")) {
+            for (v of variables) {
+              if (this.id.includes(v)) { toggle("f"+v);}
+            }
+          }
+          if (this.id == "l-con1-sense") { toggle("fp1"); }
+          if (this.id == "l-con2-sense") { toggle("fp2"); }
+          if (this.id == "l-con3-sense") { toggle("fp3"); }
+          // KKT
+          if (this.id == "kkt-sense") {
+            if (state.kktSense == "max") {
+              state.kktSense = "min";
+            } else {
+              state.kktSense = "max";
+            }
+          }
+          if (this.id == "kkt-con1-sense") { toggle("kkt1"); }
+          if (this.id == "kkt-con2-sense") { toggle("kkt2"); }
+          if (this.id == "kkt-con3-sense") { toggle("kkt3"); }
+          // Draw state
+          draw_state();
+        });
+      }
+    </script>
+  </body>
+</html>
